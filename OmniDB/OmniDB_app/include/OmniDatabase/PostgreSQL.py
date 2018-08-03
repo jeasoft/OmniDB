@@ -948,7 +948,8 @@ class PostgreSQL:
             from pg_proc p
             join pg_namespace n
             on p.pronamespace = n.oid
-            where not p.proisagg
+            -- where not p.proisagg
+            where p.prokind <> 'a'
               and format_type(p.prorettype, null) <> 'trigger'
             {0}
             order by 1
@@ -1040,7 +1041,8 @@ class PostgreSQL:
             from pg_proc p
             join pg_namespace n
             on p.pronamespace = n.oid
-            where not p.proisagg
+            --where not p.proisagg
+            where p.prokind <> 'a'
               and format_type(p.prorettype, null) = 'trigger'
             {0}
             order by 1
@@ -4302,7 +4304,10 @@ TO NODE ( nodename [, ... ] )
                        l.lanname as "Language",
                        p.procost as "Estimated Execution Cost",
                        p.prorows as "Estimated Returned Rows",
-                       p.proisagg as "Is Aggregate",
+                       --p.proisagg as "Is Aggregate",
+                       case when
+                        p.prokind = 'a' then true
+                        else false end as "Is Aggregate",
                        p.proiswindow as "Is Window",
                        p.prosecdef as "Security Definer",
                        p.proleakproof as "Leak Proof",
@@ -4334,7 +4339,10 @@ TO NODE ( nodename [, ... ] )
                        l.lanname as "Language",
                        p.procost as "Estimated Execution Cost",
                        p.prorows as "Estimated Returned Rows",
-                       p.proisagg as "Is Aggregate",
+                       --p.proisagg as "Is Aggregate",
+                       case when
+                        p.prokind = 'a' then true
+                        else false end as "Is Aggregate",
                        p.proiswindow as "Is Window",
                        p.prosecdef as "Security Definer",
                        p.proleakproof as "Leak Proof",
@@ -6189,7 +6197,8 @@ TO NODE ( nodename [, ... ] )
                        (aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner)))).privilege_type as privilege_type,
                        (aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner)))).is_grantable as is_grantable
                 from pg_proc p
-                where not p.proisagg
+                --where not p.proisagg
+                where p.prokind <> 'a'
                   and p.oid = '{0}'::regprocedure
             ) p
             inner join pg_namespace n
